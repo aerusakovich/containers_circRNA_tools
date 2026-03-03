@@ -27,7 +27,7 @@ jobs:
           context: ./circFL-seq
           platforms: linux/amd64
           push: true
-          tags: quay.io/anrusakovich/circfl:latest
+          tags: quay.io/anrusakovich/circfl-seq:latest
 
       - name: Build and push isoCirc
         uses: docker/build-push-action@v5
