@@ -1,11 +1,11 @@
 FROM condaforge/mambaforge:latest
-LABEL authors="Anastasia Rusakovich"
-LABEL description="Docker image for circFL with custom patches and specific dependency versions"
+
+LABEL authors="anrusakovich"
+LABEL description="Docker image for circFL-seq"
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV LC_ALL=C
 ENV PYTHON_UNBUFFERED=1
-
 ENV PATH="/opt/conda/envs/circFL/bin:$PATH"
 
 RUN mamba create -y -n circFL -c conda-forge -c bioconda \
@@ -13,9 +13,9 @@ RUN mamba create -y -n circFL -c conda-forge -c bioconda \
     tidehunter pysam numpy pandas=1.5.3 portion \
     scikit-learn pyfasta mappy progressbar docopt porechop && \
     /opt/conda/envs/circFL/bin/pip install circfull && \
-    chmod +x /opt/conda/envs/circFL/bin/* && \
+    chmod +x /opt/conda/envs/circFL/bin/*
 
-    PKG_DIR="/opt/conda/envs/circFL/lib/python3.9/site-packages/circfull" && \
+RUN PKG_DIR="/opt/conda/envs/circFL/lib/python3.9/site-packages/circfull" && \
     FILE="${PKG_DIR}/annoFL.py" && \
     sed -i "s/filterOut(RG_outPrefix,RG_outPrefix,thread,rmskFile)/filterOut(RG_outPrefix,RG_outPrefix,fastq,genome,thread,rmskFile)/" ${PKG_DIR}/RG.py && \
     sed -i "s/set(iso2read.keys())/list(iso2read.keys())/g" ${PKG_DIR}/mRG_merge.py && \
@@ -40,9 +40,8 @@ RUN mamba create -y -n circFL -c conda-forge -c bioconda \
     sed -i "/elif i=='intergenic':/{n; n; a\\
         elif i=='unannotated':\\
             n='unannotated'\\
-            m='unannotated'
+            m='unannotated' \n\
     }" "$FILE" && \
-
     conda clean -afy
 
 ENTRYPOINT ["/opt/conda/envs/circFL/bin/circfull"]

@@ -1,6 +1,6 @@
 FROM ubuntu:22.04
 
-LABEL authors="Anastasia Rusakovich"
+LABEL authors="anrusakovich"
 LABEL tool="isoCirc"
 LABEL description="isoCirc 1.0.7 + dependencies (Ubuntu 22.04, x86_64/AMD64)"
 
