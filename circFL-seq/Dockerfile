@@ -10,10 +10,13 @@ ENV PYTHON_UNBUFFERED=1
 
 RUN mamba create -y -n circFL -c conda-forge -c bioconda \
         python=3.9 samtools bcftools minimap2 bedtools trf \
-        tidehunter pysam numpy portion \
+        tidehunter pysam portion \
         scikit-learn pyfasta mappy progressbar docopt porechop && \
     /opt/conda/envs/circFL/bin/pip install circfull && \
-    /opt/conda/envs/circFL/bin/pip install "pandas==1.5.3" --force-reinstall && \
+    /opt/conda/envs/circFL/bin/pip install \
+        "pandas==1.5.3" \
+        "numpy==1.24.4" \
+        --force-reinstall && \
     chmod +x /opt/conda/envs/circFL/bin/* && \
     conda clean -afy
 
