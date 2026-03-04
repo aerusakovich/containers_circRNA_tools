@@ -27,5 +27,5 @@ jobs:
           context: ./circFL-seq
           platforms: linux/amd64
           push: true
-          tags: quay.io/anrusakovich/circfl-seq:latest
+          tags: quay.io/anrusakovich/circfl-seq:clean
 
