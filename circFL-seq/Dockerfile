@@ -159,6 +159,13 @@ path = '/opt/conda/envs/circFL/lib/python3.9/site-packages/circfull/annoFL.py'
 with open(path) as f:
     lines = f.readlines()
 
+# Diagnostic: print every line mentioning 'contigs' so build logs show exact source
+print("=== annoFL.py contig-related lines ===", file=sys.stderr)
+for _n, _l in enumerate(lines):
+    if "contig" in _l.lower():
+        print(f"  {_n:4d}: {repr(_l)}", file=sys.stderr)
+print("======================================", file=sys.stderr)
+
 patched_contig   = False
 patched_fetch    = False
 patched_typelist = False
@@ -170,7 +177,10 @@ while i < len(lines):
     line = lines[i]
 
     # ---- a) missing-contig early return ----
-    if not patched_contig and "if tmp['chr'] not in tabixfile.contigs:" in line:
+    # Match loosely: strip spaces and accept both quote styles so minor
+    # formatting differences in the installed package don't break the match.
+    stripped_line = line.replace(" ", "").replace('"', "'")
+    if not patched_contig and "iftmp['chr']nottintabixfile.contigs:" in stripped_line:
         indent = line[:len(line) - len(line.lstrip())]
         bi = indent + "    "
         out.append(line)
