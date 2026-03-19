@@ -159,14 +159,6 @@ path = '/opt/conda/envs/circFL/lib/python3.9/site-packages/circfull/annoFL.py'
 with open(path) as f:
     lines = f.readlines()
 
-# Diagnostic: show every line that mentions 'fetch' or 'contig' so mismatches
-# are immediately visible in the build log.
-print("=== annoFL.py fetch/contig lines ===", file=sys.stderr)
-for n, l in enumerate(lines):
-    if "fetch" in l or "contig" in l.lower():
-        print(f"  {n:4d}: {l!r}", file=sys.stderr)
-print("=====================================", file=sys.stderr)
-
 patched_fetch    = False   # covers both (a) contig-guard and (b) ValueError wrap
 patched_typelist = False
 patched_elif     = False
@@ -261,5 +253,103 @@ with open(path, 'w') as f:
 print("Patched annoFL.py OK")
 EOF
 
+# ── Patch 5: DNSC_getNovo.py ──────────────────────────────────────────────────
+# TideHunter can crash or produce no output (e.g. "Illegal instruction" on
+# certain CPUs). getNovo() then tries thFile['readName'][0] on an empty
+# DataFrame → KeyError: 0.
+# Fix: add an early-return guard right before that access so the DNSC step
+# exits cleanly instead of crashing the whole pipeline.
+RUN python3 - <<'EOF'
+import sys
+
+path = '/opt/conda/envs/circFL/lib/python3.9/site-packages/circfull/DNSC_getNovo.py'
+with open(path) as f:
+    lines = f.readlines()
+
+patched = False
+out = []
+i = 0
+while i < len(lines):
+    line = lines[i]
+    # Target: the first access of thFile['readName'][0] — guard before it
+    if not patched and "thFile['readName'][0][0]==" in line.replace(" ", ""):
+        indent = line[:len(line) - len(line.lstrip())]
+        out.append(indent + "if thFile.empty:\n")
+        out.append(indent + "    import sys; print('DNSC getNovo: TideHunter produced no output, skipping', file=sys.stderr)\n")
+        out.append(indent + "    return\n")
+        patched = True
+    out.append(line)
+    i += 1
+
+if not patched:
+    print("ERROR: DNSC_getNovo.py target line not found", file=sys.stderr)
+    sys.exit(1)
+
+with open(path, 'w') as f:
+    f.writelines(out)
+print("Patched DNSC_getNovo.py OK")
+EOF
+
+
+# ── Patch 6: circFL_main.py — add FL2BED subcommand ──────────────────────────
+# The FL2BED step in the pipeline calls "circfull FL2BED" but that subcommand
+# does not exist in the pip-installed version. This patch:
+#   a) Adds FL2BED to the help text so the command is documented.
+#   b) Inserts an inline handler for "circfull FL2BED -c <file> -o <out.bed>"
+#      that reads the circFL full-length txt file and converts it to BED12,
+#      using the existing FL2bed() function from RG_circFL_output.
+RUN python3 - <<'EOF'
+import sys
+
+path = '/opt/conda/envs/circFL/lib/python3.9/site-packages/circfull/circFL_main.py'
+with open(path) as f:
+    src = f.read()
+
+# ---- a) add FL2BED to help text ----
+old_help = "    partial        Count partial circRNA.\n'''"
+new_help = "    partial        Count partial circRNA.\n    FL2BED         Convert circFL full-length file to BED12 format.\n'''"
+if old_help in src:
+    src = src.replace(old_help, new_help)
+    print("  OK  : FL2BED added to help text")
+else:
+    print("  WARN: help text target not found", file=sys.stderr)
+
+# ---- b) inline FL2BED handler ----
+fl2bed_handler = (
+    "    elif sys.argv[1] == 'FL2BED':\n"
+    "        import pandas as pd\n"
+    "        from circfull.RG_circFL_output import FL2bed\n"
+    "        import sys as _sys\n"
+    "        args = sys.argv[2:]\n"
+    "        circ_file = None\n"
+    "        output_file = 'FL2bed.bed'\n"
+    "        i = 0\n"
+    "        while i < len(args):\n"
+    "            if args[i] == '-c' and i+1 < len(args): circ_file = args[i+1]; i += 2\n"
+    "            elif args[i] == '-o' and i+1 < len(args): output_file = args[i+1]; i += 2\n"
+    "            else: i += 1\n"
+    "        if circ_file is None: _sys.exit('FL2BED: -c circ is required')\n"
+    "        circ_df = pd.read_csv(circ_file, sep='\\t')\n"
+    "        if circ_df.columns[0] != 'circID':\n"
+    "            circ_df = pd.read_csv(circ_file, sep='\\t', header=None)\n"
+    "            FL_colname = ['circID','isoID','chr','start','end','len','exonNum','exon_start','exon_end','motif','leftSeq','rightSeq','exon_leftSeq','exon_rightSeq','strand','geneName','readCount','readID']\n"
+    "            circ_df.columns = FL_colname[0:circ_df.shape[1]]\n"
+    "        bed = FL2bed(circ_df)\n"
+    "        bed.to_csv(output_file, header=None, index=None, sep='\\t')\n"
+    "        print('FL2BED done:', len(bed), 'entries')\n"
+)
+
+old_else = "    else:\n        sys.exit(helpInfo)"
+new_else = fl2bed_handler + old_else
+if old_else in src:
+    src = src.replace(old_else, new_else)
+    print("  OK  : FL2BED handler inserted")
+else:
+    print("  WARN: else/helpInfo target not found", file=sys.stderr)
+
+with open(path, 'w') as f:
+    f.write(src)
+print("Patched circFL_main.py OK")
+EOF
 ENV PATH="/opt/conda/envs/circFL/bin:/opt/conda/bin:$PATH"
 ENTRYPOINT ["/opt/conda/envs/circFL/bin/circfull"]
