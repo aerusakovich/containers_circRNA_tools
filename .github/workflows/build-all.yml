@@ -27,5 +27,12 @@ jobs:
           context: ./circFL-seq
           platforms: linux/amd64
           push: true
-          tags: quay.io/anrusakovich/circfl-seq:patched
+          tags: quay.io/anrusakovich/circfl-seq:latest
 
+      - name: Build and push CIRI-long
+        uses: docker/build-push-action@v5
+        with:
+          context: ./CIRI-long
+          platforms: linux/amd64
+          push: true
+          tags: quay.io/anrusakovich/ciri-long:latest
