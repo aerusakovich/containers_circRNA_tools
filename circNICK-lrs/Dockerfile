@@ -1,4 +1,6 @@
-FROM continuumio/miniconda3:23.3.1-0
+FROM mambaorg/micromamba:1.5.3
+
+USER root
 
 # Install system dependencies + perl
 RUN apt-get update && apt-get install -y \
@@ -9,15 +11,15 @@ RUN apt-get update && apt-get install -y \
     perl \
     && rm -rf /var/lib/apt/lists/*
 
-# Pin Python 3.9 and install all dependencies into base environment
-RUN conda install -y python=3.9 && \
-    conda install -y -c bioconda -c conda-forge \
+# Install all dependencies into base environment using mamba
+RUN micromamba install -y -n base -c bioconda -c conda-forge \
+    python=3.9 \
     bedtools=2.29.2 \
     samtools \
     pblat \
     nanofilt \
     deeptools \
-    && conda clean -afy
+    && micromamba clean -afy
 
 # Clone the repository
 RUN git clone https://github.com/omiics-dk/long_read_circRNA.git /opt/long_read_circRNA
@@ -33,6 +35,7 @@ RUN long_read_circRNA download-data \
 
 ENV SCRIPT_PATH=/opt/long_read_circRNA/scripts
 ENV REFERENCE_PATH=/opt/long_read_circRNA/data
+ENV PATH=/opt/conda/bin:$PATH
 
 WORKDIR /data
 
