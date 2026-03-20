@@ -40,7 +40,7 @@ jobs:
       - name: Build and push isoCIRC
         uses: docker/build-push-action@v5
         with:
-          context: ./CIRI-long
+          context: ./isocirc
           platforms: linux/amd64
           push: true
           tags: quay.io/anrusakovich/isocirc:latest
