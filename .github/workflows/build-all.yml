@@ -44,3 +44,11 @@ jobs:
           platforms: linux/amd64
           push: true
           tags: quay.io/anrusakovich/isocirc:latest
+
+      - name: Build and push circNICK-lrs
+        uses: docker/build-push-action@v5
+        with:
+          context: ./circNICK-lrs
+          platforms: linux/amd64
+          push: true
+          tags: quay.io/anrusakovich/circnick-lrs:latest
