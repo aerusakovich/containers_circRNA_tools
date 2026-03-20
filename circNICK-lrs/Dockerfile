@@ -1,4 +1,4 @@
-FROM continuumio/miniconda3:latest
+FROM continuumio/miniconda3:23.3.1-0
 
 # Install system dependencies + perl
 RUN apt-get update && apt-get install -y \
@@ -9,8 +9,9 @@ RUN apt-get update && apt-get install -y \
     perl \
     && rm -rf /var/lib/apt/lists/*
 
-# Install all dependencies directly into the base conda environment
-RUN conda install -y -c bioconda -c conda-forge \
+# Pin Python 3.9 and install all dependencies into base environment
+RUN conda install -y python=3.9 && \
+    conda install -y -c bioconda -c conda-forge \
     bedtools=2.29.2 \
     samtools \
     pblat \
@@ -30,7 +31,6 @@ RUN long_read_circRNA download-data \
     --data-output /opt/long_read_circRNA/data \
     --test-output /opt/long_read_circRNA/test_fastq
 
-# Pre-set script and reference paths
 ENV SCRIPT_PATH=/opt/long_read_circRNA/scripts
 ENV REFERENCE_PATH=/opt/long_read_circRNA/data
 
