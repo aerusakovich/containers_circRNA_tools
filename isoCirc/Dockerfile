@@ -1,4 +1,4 @@
-FROM continuumio/miniconda3:latest
+FROM continuumio/miniconda3:23.5.2-0
 
 LABEL description="isoCirc - circular RNA isoform analysis tool"
 LABEL url="https://github.com/Xinglab/isoCirc"
@@ -9,6 +9,9 @@ RUN apt-get update && apt-get install -y \
     git \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
+
+# Ensure Python 3.11 is active (this image ships 3.11 by default)
+RUN conda install -y python=3.11 && conda clean -afy
 
 # Install bedtools and minimap2 via conda
 RUN conda install -c bioconda -c conda-forge -y \
@@ -26,12 +29,12 @@ RUN git clone https://github.com/Xinglab/isoCirc.git /opt/isoCirc
 RUN cp /opt/isoCirc/isoCirc_pipeline/bin/* /usr/local/bin/ \
     && chmod +x /usr/local/bin/*
 
-# Create a wrapper so `isocirc` works as a plain command
-RUN printf '#!/bin/bash\nexec python /opt/isoCirc/isoCirc_pipeline/isocirc/isocirc "$@"\n' \
+# Add a wrapper so `isocirc` works as a plain command (required for singularity exec)
+RUN printf '#!/bin/bash\npython /opt/isoCirc/isoCirc_pipeline/isocirc/isocirc "$@"\n' \
     > /usr/local/bin/isocirc \
     && chmod +x /usr/local/bin/isocirc
 
-# Set the working directory
 WORKDIR /data
 
-CMD ["isocirc", "--help"]
+ENTRYPOINT ["isocirc"]
+CMD ["--help"]
