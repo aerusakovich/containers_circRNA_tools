@@ -16,10 +16,10 @@ RUN apt-get update && apt-get install -y \
 # Ensure Python 3.11 is active
 RUN conda install -y python=3.11 && conda clean -afy
 
-# Install bedtools and minimap2 via conda
+# Install bedtools >= 2.27.0 and minimap2 >= 2.11 via conda (pinned to satisfy isoCirc deps)
 RUN conda install -c bioconda -c conda-forge -y \
-    bedtools \
-    minimap2 \
+    "bedtools>=2.27.0" \
+    "minimap2>=2.11" \
     && conda clean -afy
 
 # Install isoCirc via pip
