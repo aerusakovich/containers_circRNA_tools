@@ -21,6 +21,13 @@ RUN micromamba install -y -n base -c bioconda -c conda-forge \
     deeptools \
     && micromamba clean -afy
 
+# Make conda/mamba binaries available system-wide
+ENV PATH=/opt/conda/bin:$PATH
+
+# Symlink python3 so scripts using #!/usr/bin/env python3 can find it
+RUN ln -s /opt/conda/bin/python3 /usr/local/bin/python3 && \
+    ln -s /opt/conda/bin/python /usr/local/bin/python
+
 # Clone the repository
 RUN git clone https://github.com/omiics-dk/long_read_circRNA.git /opt/long_read_circRNA
 
@@ -35,7 +42,6 @@ RUN long_read_circRNA download-data \
 
 ENV SCRIPT_PATH=/opt/long_read_circRNA/scripts
 ENV REFERENCE_PATH=/opt/long_read_circRNA/data
-ENV PATH=/opt/conda/bin:$PATH
 
 WORKDIR /data
 
