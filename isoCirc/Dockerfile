@@ -4,12 +4,15 @@ LABEL description="isoCirc - circular RNA isoform analysis tool"
 LABEL url="https://github.com/Xinglab/isoCirc"
 
 # Install system dependencies including C build tools (required for mappy and crlibm)
+# gawk is required by bundled itst_gtf_gtf script — mawk (debian default) lacks GNU awk features
 RUN apt-get update && apt-get install -y \
     bzip2 \
     git \
     gcc \
     make \
     build-essential \
+    gawk \
+    && update-alternatives --install /usr/bin/awk awk /usr/bin/gawk 100 \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
