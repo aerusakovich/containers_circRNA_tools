@@ -3,14 +3,17 @@ FROM continuumio/miniconda3:23.5.2-0
 LABEL description="isoCirc - circular RNA isoform analysis tool"
 LABEL url="https://github.com/Xinglab/isoCirc"
 
-# Install system dependencies
+# Install system dependencies including C build tools (required for mappy and crlibm)
 RUN apt-get update && apt-get install -y \
     bzip2 \
     git \
+    gcc \
+    make \
+    build-essential \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Ensure Python 3.11 is active (this image ships 3.11 by default)
+# Ensure Python 3.11 is active
 RUN conda install -y python=3.11 && conda clean -afy
 
 # Install bedtools and minimap2 via conda
