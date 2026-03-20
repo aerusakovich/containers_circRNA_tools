@@ -19,20 +19,19 @@ RUN conda install -c bioconda -c conda-forge -y \
 # Install isoCirc via pip
 RUN pip install --no-cache-dir isocirc
 
-# Clone the source repo to get the pipeline bin scripts (required for full functionality)
+# Clone the source repo to get the pipeline scripts and bundled bin deps
 RUN git clone https://github.com/Xinglab/isoCirc.git /opt/isoCirc
 
 # Copy the bundled bin dependencies into PATH
 RUN cp /opt/isoCirc/isoCirc_pipeline/bin/* /usr/local/bin/ \
     && chmod +x /usr/local/bin/*
 
-# Add a wrapper so `isocirc` works as a plain command (e.g. in singularity exec)
-RUN printf '#!/bin/bash\npython /opt/isoCirc/isoCirc_pipeline/isocirc/isocirc "$@"\n' \
+# Create a wrapper so `isocirc` works as a plain command
+RUN printf '#!/bin/bash\nexec python /opt/isoCirc/isoCirc_pipeline/isocirc/isocirc "$@"\n' \
     > /usr/local/bin/isocirc \
     && chmod +x /usr/local/bin/isocirc
 
 # Set the working directory
 WORKDIR /data
 
-ENTRYPOINT ["isocirc"]
-CMD ["--help"]
+CMD ["isocirc", "--help"]
