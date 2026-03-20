@@ -34,6 +34,9 @@ RUN long_read_circRNA download-data \
     --data-output /opt/long_read_circRNA/data \
     --test-output /opt/long_read_circRNA/test_fastq
 
+RUN find /opt/long_read_circRNA/data -name "*.fa" -o -name "*.fasta" | \
+    xargs -I {} samtools faidx {}
+
 ENV SCRIPT_PATH=/opt/long_read_circRNA/scripts
 ENV REFERENCE_PATH=/opt/long_read_circRNA/data
 
