@@ -7,16 +7,27 @@ RUN apt-get update && apt-get install -y \
     wget \
     curl \
     build-essential \
-    perl \
     && rm -rf /var/lib/apt/lists/*
 
-RUN micromamba install -y -n base -c bioconda -c conda-forge \
-    python=3.9 \
+# Install exact pinned versions from the working conda environment
+RUN micromamba install -y -n base -c bioconda -c conda-forge -c defaults \
+    python=3.7.6 \
+    numpy=1.21.2 \
     bedtools=2.29.2 \
-    samtools \
-    pblat \
-    nanofilt \
-    deeptools \
+    samtools=1.9 \
+    pblat=2.5 \
+    nanofilt=2.8.0 \
+    deeptools=3.5.1 \
+    deeptoolsintervals=0.1.9 \
+    pybigwig=0.3.17 \
+    py2bit=0.3.0 \
+    pysam=0.15.3 \
+    biopython=1.78 \
+    pandas=1.3.5 \
+    matplotlib-base=3.4.2 \
+    scipy=1.7.3 \
+    perl=5.26.2 \
+    htslib=1.9 \
     && micromamba clean -afy
 
 ENV PATH=/opt/conda/bin:$PATH
