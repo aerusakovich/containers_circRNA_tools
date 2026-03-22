@@ -9,7 +9,6 @@ RUN apt-get update && apt-get install -y \
     build-essential \
     && rm -rf /var/lib/apt/lists/*
 
-# Install exact pinned versions from the working conda environment
 RUN micromamba install -y -n base -c bioconda -c conda-forge -c defaults \
     python=3.7.6 \
     numpy=1.21.2 \
@@ -36,6 +35,11 @@ RUN ln -s /opt/conda/bin/python3 /usr/local/bin/python3 && \
     ln -s /opt/conda/bin/python /usr/local/bin/python
 
 RUN git clone https://github.com/omiics-dk/long_read_circRNA.git /opt/long_read_circRNA
+
+# Fix naming mismatch: scripts expect *.scan.circRNA.sort.bam but tool produces *.circRNA.sort.bam
+RUN sed -i 's/\$sample\.scan\.circRNA\.sort\.bam/\$sample.circRNA.sort.bam/g' \
+        /opt/long_read_circRNA/scripts/extra_stuff_v2.sh \
+        /opt/long_read_circRNA/scripts/novel_exons_and_alternative_usage_v7.0.sh
 
 RUN chmod +x /opt/long_read_circRNA/long_read_circRNA && \
     ln -s /opt/long_read_circRNA/long_read_circRNA /usr/local/bin/long_read_circRNA
