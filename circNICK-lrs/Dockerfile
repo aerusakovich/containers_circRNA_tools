@@ -36,6 +36,21 @@ RUN ln -s /opt/conda/bin/python3 /usr/local/bin/python3 && \
 
 RUN git clone https://github.com/omiics-dk/long_read_circRNA.git /opt/long_read_circRNA
 
+# Fix 1: scan.circRNA.sort.bam naming mismatch
+RUN sed -i 's/\$sample\.scan\.circRNA\.sort\.bam/\$sample.circRNA.sort.bam/g' \
+        /opt/long_read_circRNA/scripts/extra_stuff_v2.sh \
+        /opt/long_read_circRNA/scripts/novel_exons_and_alternative_usage_v7.0.sh
+
+# Fix 2: guard mapBed against empty novel.exons.2reads.bed
+RUN sed -i \
+    's|mapBed -s -F 1.0 -c 4 -o distinct_only -a $sample.introns.uniq.exon_remove.coverage.onlyCirc.bed -b $sample.novel.exons.2reads.bed > $sample.introns.uniq.exon_remove.coverage.onlyCirc.novelExonMap.bed|if [ -s $sample.novel.exons.2reads.bed ]; then mapBed -s -F 1.0 -c 4 -o distinct_only -a $sample.introns.uniq.exon_remove.coverage.onlyCirc.bed -b $sample.novel.exons.2reads.bed > $sample.introns.uniq.exon_remove.coverage.onlyCirc.novelExonMap.bed; else touch $sample.introns.uniq.exon_remove.coverage.onlyCirc.novelExonMap.bed; fi|' \
+        /opt/long_read_circRNA/scripts/novel_exons_and_alternative_usage_v7.0.sh
+
+# Fix 3: guard getfasta against empty novel.exons.2reads.bed
+RUN sed -i \
+    's|bedtools getfasta -fi $fa -fo $sample.novel.exons.2reads.tab -bed $sample.novel.exons.2reads.bed -name -tab -s|if [ -s $sample.novel.exons.2reads.bed ]; then bedtools getfasta -fi $fa -fo $sample.novel.exons.2reads.tab -bed $sample.novel.exons.2reads.bed -name -tab -s; else touch $sample.novel.exons.2reads.tab; fi|' \
+        /opt/long_read_circRNA/scripts/novel_exons_and_alternative_usage_v7.0.sh
+
 RUN chmod +x /opt/long_read_circRNA/long_read_circRNA && \
     ln -s /opt/long_read_circRNA/long_read_circRNA /usr/local/bin/long_read_circRNA
 
