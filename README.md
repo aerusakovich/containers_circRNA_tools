@@ -27,6 +27,7 @@ singularity exec --bind /your/data:/data ciri-long.sif \
 ```
 
 > ⚠️ **AVX2 required.** Run on AVX2-compatible hardware (e.g. `--constraint=avx2` in Slurm).
+
 > ⚠️ **Core count.** Providing too many cores may cause OOM errors — try reducing available cores if this occurs despite sufficient memory.
 
 Original tool: https://github.com/bioinfo-biols/CIRI-long
@@ -102,7 +103,6 @@ This image applies upstream bug/compatibility fixes that commonly affect the too
 
 | Fix | Description |
 |-----|-------------|
-| NumPy compatibility | Pins numpy<2 to prevent deeptools/bamCoverage crash (`_ARRAY_API not found`) |
 | BAM naming mismatch | Fixes `scan.circRNA.sort.bam` → `circRNA.sort.bam` in `extra_stuff_v2.sh` and `novel_exons_and_alternative_usage_v7.0.sh` (prevents intron coverage step from silently failing) |
 | Empty novel exon guard | Adds file size checks before `mapBed` and `bedtools getfasta` calls on `novel.exons.2reads.bed` to prevent bedtools column errors when no novel exons with 2+ read support are detected |
 
