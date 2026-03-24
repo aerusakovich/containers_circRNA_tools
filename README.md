@@ -1,3 +1,5 @@
+[![DOI](https://zenodo.org/badge/1171661602.svg)](https://doi.org/10.5281/zenodo.19202962)
+
 # circRNA Long-Read Sequencing Containers
 
 A collection of containerized pipelines for circRNA detection and characterization from long-read sequencing data. All containers are available at quya.io.
