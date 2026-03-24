@@ -1,0 +1,26 @@
+cff-version: 1.2.0
+title: circRNA Long-Read Sequencing Containers
+message: "If you use these containers in your research, please cite them as below."
+type: software
+version: 1.0.0
+date-released: 2026-03-24
+license: MIT
+authors:
+  - family-names: Rusakovich
+    given-names: Anastasia
+    orcid: https://orcid.org/0000-0001-9663-6238
+abstract: >
+  A collection of containerized pipelines for circRNA detection and
+  characterization from long-read sequencing data, including CIRI-long,
+  circFL-seq (circfull), isoCirc, and CircNick-LRS. Containers are
+  available as Docker images and Singularity SIF files, with pre-installed
+  dependencies and upstream bug fixes applied where needed.
+repository-code: https://github.com/aerusakovich/containers_circRNA_tools
+keywords:
+  - circRNA
+  - long-read sequencing
+  - nanopore
+  - container
+  - singularity
+  - docker
+  - bioinformatics
