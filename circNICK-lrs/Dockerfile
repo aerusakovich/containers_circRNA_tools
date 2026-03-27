@@ -7,6 +7,7 @@ RUN apt-get update && apt-get install -y \
     wget \
     curl \
     build-essential \
+    procps \
     && rm -rf /var/lib/apt/lists/*
 
 RUN micromamba install -y -n base -c bioconda -c conda-forge -c defaults \
