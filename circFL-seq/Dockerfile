@@ -351,5 +351,42 @@ with open(path, 'w') as f:
     f.write(src)
 print("Patched circFL_main.py OK")
 EOF
+# ── Patch 7: RG_fusion1CombinFL.py ───────────────────────────────────────────
+# commonID is a set intersection; pandas rejects sets as .loc[] indexers.
+# Fix: wrap in list() so pandas accepts it.
+RUN python3 - <<'EOF'
+path = '/opt/conda/envs/circFL/lib/python3.9/site-packages/circfull/RG_fusion1CombinFL.py'
+with open(path) as f:
+    src = f.read()
+
+if 'commonID=set(BSdf.ID) & set(consFL_1.ID ) & set(consFL_2.ID )' in src:
+    src = src.replace('commonID=set(BSdf.ID) & set(consFL_1.ID ) & set(consFL_2.ID )',
+                      'commonID=list(set(BSdf.ID) & set(consFL_1.ID ) & set(consFL_2.ID ))')
+    print("Patched RG_fusion1CombinFL.py OK")
+else:
+    print("WARN: RG_fusion1CombinFL.py target not found — already patched or changed?")
+
+with open(path, 'w') as f:
+    f.write(src)
+EOF
+
+# ── Patch 8: RG_fusion2CombinFL.py ───────────────────────────────────────────
+# Identical set-as-.loc[]-indexer bug as RG_fusion1CombinFL.py (Patch 7).
+RUN python3 - <<'EOF'
+path = '/opt/conda/envs/circFL/lib/python3.9/site-packages/circfull/RG_fusion2CombinFL.py'
+with open(path) as f:
+    src = f.read()
+
+if 'commonID=set(BSdf.ID) & set(consFL_1.ID ) & set(consFL_2.ID )' in src:
+    src = src.replace('commonID=set(BSdf.ID) & set(consFL_1.ID ) & set(consFL_2.ID )',
+                      'commonID=list(set(BSdf.ID) & set(consFL_1.ID ) & set(consFL_2.ID ))')
+    print("Patched RG_fusion2CombinFL.py OK")
+else:
+    print("WARN: RG_fusion2CombinFL.py target not found — already patched or changed?")
+
+with open(path, 'w') as f:
+    f.write(src)
+EOF
+
 ENV PATH="/opt/conda/envs/circFL/bin:/opt/conda/bin:$PATH"
 ENTRYPOINT ["/opt/conda/envs/circFL/bin/circfull"]
