@@ -45,7 +45,7 @@ docker pull quay.io/anrusakovich/circfl-seq
 - **Python 3.9** conda environment with minimap2, samtools, bedtools, TRF, TideHunter + Python dependencies
 - circfull pre-installed
 
-This image applies upstream bug/compatibility fixes that commonly break the tool during real runs:
+This image applies upstream bug/compatibility fixes that can break the tool during real runs:
 
 | Fix | Description |
 |-----|-------------|
@@ -77,6 +77,12 @@ docker pull quay.io/anrusakovich/isocirc
 - isoCirc pre-installed via pip
 - bedtools ≥ 2.27.0 and minimap2 ≥ 2.11 installed via conda
 
+This image applies upstream bug/compatibility fixes that can break the tool during real runs:
+
+| Fix | Description |
+|-----|-------------|
+| BioPython ≥1.80 alignment format | `get_cigar_from_pairwise_res` parsed `r.format()` using hard-coded token indices (ele[5], ele[9]) calibrated for the pre-1.80 alignment text format, where the indicator line included leading/trailing position numbers. BioPython 1.80 removed those numbers, changing the alignment string from ele[5] to ele[4] and the query sequence from ele[9] to ele[7], causing a fatal crash whenever a read produced a heavily-gapped pairwise alignment during `read_wise_eval`. The patch detects which format is present by checking whether ele[4] consists entirely of `\|`, `.`, `-` characters and selects indices accordingly. |
+
 ```bash
 singularity exec --bind /your/data:/data isocirc.sif \
     isocirc <fastq> <genome.fa> <annotation.gtf> <circRNA.bed> <output_dir> [options]
@@ -99,7 +105,7 @@ docker pull quay.io/anrusakovich/circnick-lrs
 - Reference data for **human and mouse (mm10/GRCm38)** pre-downloaded and bundled at `/opt/long_read_circRNA/data`
 - All genome indexes pre-built at container build time (samtools `.fai`, pblat `.flat`/`.gdx`) — no indexing or reference setup required at runtime
 
-This image applies upstream bug/compatibility fixes that commonly affect the tool during real runs:
+This image applies upstream bug/compatibility fixes that can affect the tool during real runs:
 
 | Fix | Description |
 |-----|-------------|
