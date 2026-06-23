@@ -60,6 +60,83 @@ with open(src, "w") as f:
 print("Patched", src)
 PATCH
 
+# ── Patch 2: parse_bam.py — get_spec_ref_cigar bounds check ─────────────────
+# get_spec_ref_cigar(cigartuples, flank_len-2, flank_len+2) walks through CIGAR
+# tuples counting reference bases consumed. If the CIGAR has fewer reference
+# bases than flank_len+2 (happened on PacBio reads), mi walks off the
+# end of the list leading to IndexError. Fix: add mi < len(tuples) guards to both while
+# loops and to the insertion-skip check between them. Short CIGARs will return a
+# truncated ret_cigar which scores lower in get_bsj_aln_score. Main behavior unchanged.
+RUN python3 - <<'EOF'
+import sys
+import isocirc.parse_bam as pb
+src_path = pb.__file__
+with open(src_path) as f:
+    src = f.read()
+old = (
+    "    while start_remain_len > 0:\n"
+    "        if is_cigar_M(tuples[mi][0]) or tuples[mi][0] == BAM_CDEL:\n"
+    "            if tuples[mi][1] > start_remain_len:\n"
+    "                tuples[mi] = (tuples[mi][0], tuples[mi][1] - start_remain_len)\n"
+    "                break\n"
+    "            else:\n"
+    "                start_remain_len -= tuples[mi][1]\n"
+    "\n"
+    "        mi += 1\n"
+    "    if end_remain_len > 0 and tuples[mi][0] == BAM_CINS:\n"
+    "        mi += 1\n"
+    "    # print tuples\n"
+    "    while end_remain_len > 0:\n"
+    "        # print end_remain_len\n"
+    "        if is_cigar_M(tuples[mi][0]) or tuples[mi][0] == BAM_CDEL:\n"
+    "            if tuples[mi][1] > end_remain_len:\n"
+    "                ret_cigar.append((tuples[mi][0], end_remain_len))\n"
+    "                break\n"
+    "            else:\n"
+    "                end_remain_len -= tuples[mi][1]\n"
+    "                ret_cigar.append(tuples[mi])\n"
+    "        else:\n"
+    "            ret_cigar.append(tuples[mi])\n"
+    "        mi += 1"
+)
+new = (
+    "    while start_remain_len > 0:\n"
+    "        if mi >= len(tuples):\n"
+    "            break\n"
+    "        if is_cigar_M(tuples[mi][0]) or tuples[mi][0] == BAM_CDEL:\n"
+    "            if tuples[mi][1] > start_remain_len:\n"
+    "                tuples[mi] = (tuples[mi][0], tuples[mi][1] - start_remain_len)\n"
+    "                break\n"
+    "            else:\n"
+    "                start_remain_len -= tuples[mi][1]\n"
+    "\n"
+    "        mi += 1\n"
+    "    if end_remain_len > 0 and mi < len(tuples) and tuples[mi][0] == BAM_CINS:\n"
+    "        mi += 1\n"
+    "    # print tuples\n"
+    "    while end_remain_len > 0:\n"
+    "        # print end_remain_len\n"
+    "        if mi >= len(tuples):\n"
+    "            break\n"
+    "        if is_cigar_M(tuples[mi][0]) or tuples[mi][0] == BAM_CDEL:\n"
+    "            if tuples[mi][1] > end_remain_len:\n"
+    "                ret_cigar.append((tuples[mi][0], end_remain_len))\n"
+    "                break\n"
+    "            else:\n"
+    "                end_remain_len -= tuples[mi][1]\n"
+    "                ret_cigar.append(tuples[mi])\n"
+    "        else:\n"
+    "            ret_cigar.append(tuples[mi])\n"
+    "        mi += 1"
+)
+if old not in src:
+    print("ERROR: get_spec_ref_cigar target not found -- parse_bam.py may have changed", file=sys.stderr)
+    sys.exit(1)
+with open(src_path, 'w') as f:
+    f.write(src.replace(old, new))
+print("Patched parse_bam.py OK")
+EOF
+
 # Add a wrapper so `isocirc` works as a plain command (required for singularity exec)
 RUN printf '#!/bin/bash\npython /opt/isoCirc/isoCirc_pipeline/isocirc/isocirc "$@"\n' \
     > /usr/local/bin/isocirc \
