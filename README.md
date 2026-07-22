@@ -128,6 +128,26 @@ Original tool: https://github.com/omiics-dk/long_read_circRNA
 
 ---
 
+### nanocirc-quant
+
+Remap-based circRNA quantification module for `nf-core/nanocirc` — counts reads per circRNA locus by aligning against tandem-duplicated circle references, with tiered rescue for low-coverage and gene-family loci.
+
+```
+docker pull quay.io/anrusakovich/nanocirc-quant
+```
+
+- **Python 3.11** conda environment with minimap2, samtools, pblat + pysam, pandas
+- No upstream tool being wrapped/patched — this is NanoCirc's own quantification code (`nanocirc_quant`), not a third-party tool
+
+```bash
+singularity exec --bind /your/data:/data nanocirc-quant.sif \
+    quant_chunk_remap.py [options]
+```
+
+Source: `nf-core/nanocirc` pipeline repository (`clean_quant/nanocirc_quant/`).
+
+---
+
 ## General Usage Notes
 
 - **Bind-mount** your input FASTQ, genome, annotation, and output directories into the container as needed using `--bind /host/path:/container/path` (Singularity) or `-v /host/path:/container/path` (Docker).

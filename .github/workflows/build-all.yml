@@ -2,10 +2,39 @@ name: Build and Push All Containers
 on:
   push:
     branches: [ "main" ]
-  workflow_dispatch: 
+  workflow_dispatch:
 
 jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      circfl-seq: ${{ steps.filter.outputs.circfl-seq }}
+      ciri-long: ${{ steps.filter.outputs.ciri-long }}
+      isocirc: ${{ steps.filter.outputs.isocirc }}
+      circnick-lrs: ${{ steps.filter.outputs.circnick-lrs }}
+      nanocirc-quant: ${{ steps.filter.outputs.nanocirc-quant }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Detect changed tool directories
+        uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            circfl-seq:
+              - 'circFL-seq/**'
+            ciri-long:
+              - 'CIRI-long/**'
+            isocirc:
+              - 'isoCirc/**'
+            circnick-lrs:
+              - 'circNICK-lrs/**'
+            nanocirc-quant:
+              - 'nanocirc-quant/**'
+
   build-and-push:
+    needs: changes
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
@@ -22,6 +51,7 @@ jobs:
           password: ${{ secrets.QUAY_TOKEN }}
 
       - name: Build and push circFL-seq
+        if: needs.changes.outputs.circfl-seq == 'true' || github.event_name == 'workflow_dispatch'
         uses: docker/build-push-action@v5
         with:
           context: ./circFL-seq
@@ -30,6 +60,7 @@ jobs:
           tags: quay.io/anrusakovich/circfl-seq:latest
 
       - name: Build and push CIRI-long
+        if: needs.changes.outputs.ciri-long == 'true' || github.event_name == 'workflow_dispatch'
         uses: docker/build-push-action@v5
         with:
           context: ./CIRI-long
@@ -38,6 +69,7 @@ jobs:
           tags: quay.io/anrusakovich/ciri-long:latest
 
       - name: Build and push isoCirc
+        if: needs.changes.outputs.isocirc == 'true' || github.event_name == 'workflow_dispatch'
         uses: docker/build-push-action@v5
         with:
           context: ./isoCirc
@@ -46,9 +78,19 @@ jobs:
           tags: quay.io/anrusakovich/isocirc:latest
 
       - name: Build and push circNICK-lrs
+        if: needs.changes.outputs.circnick-lrs == 'true' || github.event_name == 'workflow_dispatch'
         uses: docker/build-push-action@v5
         with:
           context: ./circNICK-lrs
           platforms: linux/amd64
           push: true
           tags: quay.io/anrusakovich/circnick-lrs:latest
+
+      - name: Build and push nanocirc-quant
+        if: needs.changes.outputs.nanocirc-quant == 'true' || github.event_name == 'workflow_dispatch'
+        uses: docker/build-push-action@v5
+        with:
+          context: ./nanocirc-quant
+          platforms: linux/amd64
+          push: true
+          tags: quay.io/anrusakovich/nanocirc-quant:latest
